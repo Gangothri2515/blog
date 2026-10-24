@@ -1,0 +1,29 @@
+flowchart TB
+    subgraph BEFORE["BEFORE — 9,178 s · 14 vertices · 1,511 tasks"]
+        direction TB
+        A["Map 1<br/>457 tasks · 46 s<br/>scan 510,716,930 rows"]
+        B["Reducer 2<br/>1,009 tasks · 160 s<br/>joins + GROUP BY"]
+        C["Reducer 3<br/><b>1 task · 8,993 s</b><br/>column statistics<br/>in: 510,716,836 · out: 0"]
+        D[("staging.stg_fact_week<br/>written")]
+        E[("metastore<br/>TAB_COL_STATS")]
+        A --> B --> C
+        B --> D
+        C --> E
+    end
+
+    subgraph AFTER["AFTER — 960 s"]
+        direction TB
+        A2["Map 1<br/>457 tasks<br/>scan 510,716,836 rows"]
+        B2["Reducer 2<br/>1,009 tasks<br/>joins + GROUP BY"]
+        D2[("staging.stg_fact_week<br/>written")]
+        A2 --> B2 --> D2
+    end
+
+    BEFORE -. "SET hive.stats.column.autogather=false" .-> AFTER
+
+    classDef bottleneck fill:#fee2e2,stroke:#dc2626,stroke-width:2px,color:#111827
+    classDef work fill:#dbeafe,stroke:#2563eb,color:#111827
+    classDef sink fill:#f3f4f6,stroke:#9ca3af,color:#374151
+    class C bottleneck
+    class A,B,A2,B2 work
+    class D,E,D2 sink

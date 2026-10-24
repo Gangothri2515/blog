@@ -1,0 +1,20 @@
+# Node tooling used only for diagram export
+node_modules/
+package-lock.json
+
+# OS cruft
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# Editor
+.vscode/
+.idea/
+
+# Scratch
+*.tmp
+*.bak
+scratch/
+
+# Names internal systems — must never be published
+scrub-terms.txt

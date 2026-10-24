@@ -1,0 +1,30 @@
+flowchart TD
+    START["Query is slow.<br/>Read the Task Execution Summary."] --> Q1
+
+    Q1{"Is one vertex<br/>most of the<br/>statement DURATION?"}
+    Q1 -- No --> SPREAD["Cost is spread across vertices.<br/>This is a different problem:<br/>read less data, or move less data."]
+    Q1 -- Yes --> Q2
+
+    Q2{"What is that<br/>vertex's TOTAL<br/>task count?"}
+    Q2 -- "1" --> Q3
+    Q2 -- "Many, but COMPLETED<br/>stalls at TOTAL − 1" --> SKEW["<b>Skew.</b><br/>One key dominates a partition.<br/>Aggregate counters cannot show this —<br/>the stall is the only tell."]
+    Q2 -- "Many, all progressing" --> Q5
+
+    Q3{"Is CPU_TIME close to<br/>or above DURATION?"}
+    Q3 -- Yes --> Q4
+    Q3 -- "No, far below" --> NOTCPU["Not CPU-bound at task level.<br/>That is all you know.<br/>Get SPILLED_RECORDS, FILE_BYTES_*<br/>and shuffle counters from<br/>yarn logs -applicationId"]
+
+    Q4{"OUTPUT_RECORDS = 0<br/>while INPUT_RECORDS<br/>is the full row count?"}
+    Q4 -- Yes --> SIDEEFFECT["<b>Single-threaded side effect.</b><br/>Not producing data — doing bookkeeping.<br/>Check hive.stats.column.autogather"]
+    Q4 -- No --> SERIAL["<b>Structurally serial step.</b><br/>ORDER BY · COUNT(DISTINCT) with no GROUP BY ·<br/>window with no PARTITION BY ·<br/>aggregate over one group"]
+
+    Q5{"GC_TIME over roughly<br/>10–15% of CPU_TIME?"}
+    Q5 -- Yes --> MEM["Memory pressure.<br/>Heap nearly full, collecting constantly.<br/>Raise -Xmx or shrink retained state."]
+    Q5 -- No --> WIDE["Genuinely wide and busy.<br/>Reduce work per row, or read fewer rows."]
+
+    classDef answer fill:#fee2e2,stroke:#dc2626,color:#111827
+    classDef neutral fill:#f3f4f6,stroke:#9ca3af,color:#374151
+    classDef q fill:#ffffff,stroke:#374151,color:#111827
+    class SIDEEFFECT,SERIAL,SKEW answer
+    class SPREAD,NOTCPU,MEM,WIDE neutral
+    class Q1,Q2,Q3,Q4,Q5,START q
