@@ -393,22 +393,16 @@ rows as possible.
 
 ## What is measured here, and what is not
 
-Both console blocks above are verbatim from the logs of one production run, with
-only the table and column identifiers in the SQL changed. The vertex counters,
-the task counts, the 9,178.25 second DAG, the 99% progress snapshot and the
-16-minute result after the change are all measured, not reconstructed. I would
-still encourage you not to trust the *general* claims without checking them
-against your own cluster, because version differences here are real.
-
-Two caveats worth knowing. The Task Execution Summary has had reporting bugs —
-[HIVE-28309][h28309] has `DURATION` always printing zero, and
-[HIVE-16436][h16436] reports incorrect durations for map vertices. If your
-numbers look impossible, check whether your version is affected before drawing
-conclusions. And my explanation of *why* the stats vertex is single-task is drawn
-from how the feature is designed and documented, not from instrumenting Hive's
-planner. The observation that it ran as one task, consumed every row and emitted
-none is measured. The reasoning about why is mechanism, and the fix does not
-depend on it.
+Every console block above is verbatim from one production run, with only the
+table and column identifiers changed. The counters, the task counts, the
+9,178.25 second DAG and the 16-minute result afterwards are measured. That the
+vertex ran as one task, consumed every row and emitted none is measured too —
+*why* it is single-task comes from the design docs, not from instrumenting
+Hive's planner, though the fix does not depend on that reasoning. One caveat if
+you go looking at your own summary: it has had reporting bugs, including
+[HIVE-28309][h28309] printing `DURATION` as zero and [HIVE-16436][h16436]
+getting map durations wrong. If your numbers look impossible, check your version
+before concluding anything.
 
 ## Sources
 
