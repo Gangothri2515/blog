@@ -21,7 +21,7 @@ posts/
 
 | # | Title | Status | Medium | dev.to |
 |---|---|---|---|---|
-| 001 | [Hive spent 98% of my query on bookkeeping nothing reads](./posts/001-work-that-cannot-be-parallelised/index.md) | Draft | — | — |
+| 001 | [My Hive query sat at 99% for two and a half hours](./posts/001-work-that-cannot-be-parallelised/index.md) | Draft | — | — |
 
 ## Backlog
 

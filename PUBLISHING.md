@@ -99,8 +99,9 @@ LinkedIn.
      language.
 4. Upload the PNGs from step 1. Click an image after inserting it to add a
    caption — captions are worth writing, they are read more than body text
-5. Add up to five tags. For this post: `data engineering`, `hive`, `big data`,
-   `performance`, `sql`
+5. Add up to five tags. Medium allows five, dev.to only four, so the two lists
+   differ slightly. For this post on Medium: `data engineering`, `hive`,
+   `optimization`, `performance`, `big data`
 6. Publish
 
 **Reach.** A story on your own profile reaches almost nobody. Submitting to a
@@ -137,8 +138,8 @@ publish the markdown as-is without the PNG substitution.
 6. Save with `published: false`, check the preview — especially that both Mermaid
    diagrams rendered — then set `published: true` and save again
 
-Four tags maximum, lowercase, no spaces: `hive`, `bigdata`, `performance`,
-`dataengineering`.
+Four tags maximum, lowercase, no spaces — this is why `bigdata` is dropped here
+but kept on Medium: `hive`, `dataengineering`, `performance`, `optimization`.
 
 With `canonical_url` set, dev.to displays an "Originally published at medium.com"
 line and tells search engines to credit the Medium URL. That consolidates your
@@ -214,7 +215,7 @@ Applies to planned post 3 (the `OVERWRITE` + `UNION ALL` lock failure) and post 
 
 ```yaml
 ---
-title: "Hive spent 98% of my query on bookkeeping nothing reads"
+title: "My Hive query sat at 99% for two and a half hours"
 published: false
 description: "One sentence. Shows up in search results and link previews."
 tags: [hive, bigdata, performance, dataengineering]

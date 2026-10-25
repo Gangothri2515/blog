@@ -1,17 +1,17 @@
 ---
-title: "Hive spent 98% of my query on bookkeeping nothing reads"
+title: "My Hive query sat at 99% for two and a half hours"
 published: false
-description: "A 510-million-row INSERT took 2 hours 33 minutes. The scan, the five joins and the GROUP BY accounted for under three and a half minutes of it. Here is how to find the part of a query that cannot be parallelised, and why adding hardware never fixes it."
-tags: [hive, bigdata, performance, dataengineering]
+description: "Thirteen of fourteen vertices finished in about three minutes. The fourteenth was a single task, and it wrote nothing. Here is how to find work that cannot be parallelised, and why adding containers never fixes it."
+tags: [hive, dataengineering, performance, optimization]
 canonical_url:
 ---
 
-A nightly `INSERT OVERWRITE` that aggregates 510 million fact rows started taking
-two and a half hours. Nothing about the data had changed. The cluster was not
-busy. Adding containers did nothing.
+A nightly `INSERT OVERWRITE` over 510 million fact rows reached 99% in about
+three minutes, then sat there for the next two and a half hours. Nothing about
+the data had changed. The cluster was not busy. Adding containers did nothing.
 
-The scan, the five dimension joins and the `GROUP BY` took about three minutes
-between them. The remaining 2 hours and 30 minutes was spent by a single task,
+Those three minutes were the real work: the scan, the five dimension joins and
+the `GROUP BY`. The remaining 2 hours and 30 minutes was spent by a single task,
 computing statistics that nothing in the pipeline would ever read.
 
 This post is about how to spot that shape of problem, because the usual advice —
@@ -46,7 +46,8 @@ GROUP BY   t.planning_month_key, l.country_name, c.channel_name,
            v.version_name, i.product_name, t.season_name;
 ```
 
-Hive on Tez, HDP 3. Fourteen vertices, 1,511 tasks. Here is what the console
+Hive on Tez — `Apache Hive (version 3.1.0.3.1.4.0-315)`, which is Hive 3.1.0 on
+an HDP 3.1.4 build. Fourteen vertices, 1,511 tasks. Here is what the console
 printed when it finally finished:
 
 ```
@@ -159,8 +160,8 @@ single-threaded work.
 It was gathering column statistics.
 
 In Hive 3, `hive.stats.column.autogather` defaults to `true`. The default was
-flipped from `false` in [HIVE-13567][h13567], whose patch diff makes it
-explicit:
+flipped from `false` in [HIVE-13567][h13567] with fix version 3.0.0 — so it
+applies to the 3.1.0 build above — and the patch diff makes it explicit:
 
 ```diff
 - HIVESTATSCOLAUTOGATHER("hive.stats.column.autogather", false,
@@ -188,6 +189,15 @@ documentation states the consequence plainly:
 So enabling column statistics *adds a reduce stage* to a write that would not
 otherwise have one. In my DAG that stage was `Reducer 3`, and it received every
 one of the 510 million rows.
+
+Worth being explicit about how I know it was enabled, since vendor builds do
+override upstream defaults. The script that produced the run above never
+mentions `hive.stats.column.autogather` anywhere — the string does not appear in
+the log at all — so the setting was sitting at whatever the cluster default was.
+The stats vertex was there regardless. Adding one `SET` to turn it off made that
+vertex disappear and cut the runtime by 89%. Default on, vertex present; default
+overridden to off, vertex gone. You do not need to trust a documented default
+when you have both halves of that comparison.
 
 ## Why it cannot be parallelised
 
