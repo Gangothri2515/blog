@@ -11,13 +11,16 @@ and a half minutes, then sat at 99% for the next two and a half hours. Nothing
 about the data had changed. The cluster was not busy. Adding containers did
 nothing.
 
+*Disclosure: I used an AI assistant to help draft and structure this write-up.
+The investigation, the production logs and every number in it are my own.*
+
 Those three and a half minutes were the real work: the scan, the five dimension
 joins and the `GROUP BY`. The remaining 2 hours and 29 minutes was spent by a
 single task, computing statistics that nothing in the pipeline would ever read.
 
-This post is about how to spot that shape of problem, because the usual advice —
-raise parallelism, add containers, tune reducer counts — is actively useless
-against it. When one step in your query structurally cannot be split across
+This post is about how to spot that shape of problem. The usual advice is to
+raise parallelism, add containers, tune reducer counts. Against this, all of it
+is useless. When one step in your query structurally cannot be split across
 machines, it sets the floor on your runtime no matter how much hardware you
 point at the rest.
 
@@ -47,8 +50,8 @@ GROUP BY   t.planning_month_key, l.country_name, c.channel_name,
            v.version_name, i.product_name, t.season_name;
 ```
 
-Hive on Tez — `Apache Hive (version 3.1.0.3.1.4.0-315)`, which is Hive 3.1.0 on
-an HDP 3.1.4 build. Fourteen vertices, 1,511 tasks. Here is what the console
+Hive on Tez. The version banner reads `Apache Hive (version
+3.1.0.3.1.4.0-315)`, which is Hive 3.1.0 on an HDP 3.1.4 build. Fourteen vertices, 1,511 tasks. Here is what the console
 printed when it finally finished:
 
 ```
@@ -86,7 +89,7 @@ Task Execution Summary
 ```
 
 Scan that `DURATION` column. Thirteen of the fourteen vertices account for about
-185 seconds between them. `Reducer 3` alone is 8,993,294 ms — **98% of the
+185 seconds between them. `Reducer 3` alone is 8,993,294 ms, or **98% of the
 entire DAG.**
 
 The two vertices doing the real work are `Map 1`, scanning 510,716,930 fact rows
@@ -131,7 +134,7 @@ VERTICES: 13/14  [=========================>>-] 99%   ELAPSED TIME: 9177.78 s
 ```
 
 Thirteen vertices `SUCCEEDED`. 1,510 of 1,511 tasks finished. One task
-`RUNNING`, with `TOTAL 1` — and no setting changes that number, because it is a
+`RUNNING`, with `TOTAL 1`. No setting changes that number, because it is a
 property of the plan rather than of the tuning.
 
 If you have ever watched a Hive job sit at 99% and assumed it was nearly done,
@@ -152,7 +155,7 @@ conclusive, because CPU time cannot accumulate while a thread is blocked.
 it was doing, it was not transforming data on the way to the table. The table
 was already written. This vertex was a side effect.
 
-And its GC time was 104,670 ms against 9,488,200 ms of CPU — 1.1%. Not memory
+And its GC time was 104,670 ms against 9,488,200 ms of CPU, or 1.1%. Not memory
 pressure. Nothing was thrashing. It was simply a very large amount of
 single-threaded work.
 
@@ -161,8 +164,8 @@ single-threaded work.
 It was gathering column statistics.
 
 In Hive 3, `hive.stats.column.autogather` defaults to `true`. The default was
-flipped from `false` in [HIVE-13567][h13567] with fix version 3.0.0 — so it
-applies to the 3.1.0 build above — and the patch diff makes it explicit:
+flipped from `false` in [HIVE-13567][h13567], with fix version 3.0.0, so it
+applies to the 3.1.0 build above. The patch diff makes it explicit:
 
 ```diff
 - HIVESTATSCOLAUTOGATHER("hive.stats.column.autogather", false,
@@ -191,10 +194,10 @@ So enabling column statistics *adds a reduce stage* to a write that would not
 otherwise have one. In my DAG that stage was `Reducer 3`, and it received every
 one of the 510 million rows.
 
-Worth being explicit about how I know it was enabled, since vendor builds do
-override upstream defaults. The script that produced the run above never
-mentions `hive.stats.column.autogather` anywhere — the string does not appear in
-the log at all — so the setting was sitting at whatever the cluster default was.
+How do I know it was enabled? Vendor builds do override upstream defaults, so
+this is worth pinning down. The script that produced the run above never
+mentions `hive.stats.column.autogather` anywhere. The string does not appear in
+the log at all, so the setting was sitting at whatever the cluster default was.
 The stats vertex was there regardless. Adding one `SET` to turn it off made that
 vertex disappear and cut the runtime by 89%. Default on, vertex present; default
 overridden to off, vertex gone. You do not need to trust a documented default
@@ -220,7 +223,7 @@ whole per-row cost landed in one thread.
 
 This is Amdahl's law with a concrete face. If 2% of your work is parallel and 98%
 is serial, buying twice the cluster improves your runtime by roughly 1%. The
-question that matters is never "how do I parallelise this harder" — it is
+question that matters is never "how do I parallelise this harder". It is
 **"which step here cannot be parallelised at all, and can I delete it?"**
 
 ```mermaid
@@ -286,7 +289,7 @@ are paying to produce.** In my case the tables were staging: written once by thi
 script, exported once to object storage, then dropped. No optimiser ever saw
 them. Every millisecond spent on their statistics was pure loss.
 
-So the test is not "are statistics expensive" — they are. It is:
+So the test is not "are statistics expensive". They are. The test is:
 
 - Is this table read by queries whose plans the optimiser needs to choose? Keep
   autogather on, or run `ANALYZE` on a schedule.
@@ -301,8 +304,8 @@ your load.
 
 Note also that **basic** statistics are a different thing and should stay on.
 `hive.stats.autogather` covers row counts, file counts and total size, and per
-the StatsDev doc those are accumulated by the file-sink operator *as it writes* —
-distributed across every writer task, effectively free. Those row counts are also
+the StatsDev doc those are accumulated by the file-sink operator *as it writes*,
+distributed across every writer task and effectively free. Those row counts are also
 what you want for verifying a load. I left them enabled.
 
 ## How to find this in your own query
@@ -344,8 +347,8 @@ Concretely, three steps.
 
 **Watch the progress output, not just the total time.** The tell is a vertex
 whose `COMPLETED` count stalls while `TOTAL` is 1, or stalls at `TOTAL - 1`. Both
-mean a single task is holding the DAG open — the first structurally, the second
-usually from skew.
+mean a single task is holding the DAG open. The first is structural, the second
+is usually skew.
 
 **Read the Task Execution Summary.** Turn it on if your session does not print
 it:
@@ -359,10 +362,10 @@ and compare `CPU_TIME` against it. CPU time at or above duration means a pinned
 core doing real work. Far below it means something else, and you need the spill
 and shuffle counters from `yarn logs -applicationId <id>` to say what.
 
-**Check the settings rather than trusting a document.** This matters: HDP 3's
-documentation says Hive "generates table statistics, but not column statistics,
-which you must generate manually" — which contradicts the upstream Hive 3.0.0
-default established in HIVE-13567. Vendor defaults diverge from upstream, and
+**Check the settings rather than trusting a document.** HDP 3's documentation
+says Hive "generates table statistics, but not column statistics, which you must
+generate manually". That contradicts the upstream Hive 3.0.0 default established
+in HIVE-13567. Vendor defaults diverge from upstream, and
 documentation goes stale. The only authority is your own session:
 
 ```sql
@@ -374,7 +377,7 @@ SET hive.compute.query.using.stats;
 ## The general shape
 
 Column statistics are one instance. The pattern recurs, and the diagnostic is
-always the same — find the vertex with one task:
+always the same. Find the vertex with one task:
 
 - `ORDER BY` forces a single reducer by definition, because a global ordering
   cannot be produced in parallel. Use `SORT BY` plus `DISTRIBUTE BY` when you
@@ -383,8 +386,8 @@ always the same — find the vertex with one task:
   reducer to deduplicate.
 - A window function with no `PARTITION BY` has one logical partition, so one
   task.
-- An aggregation over a single group — `SELECT SUM(x) FROM t` — converges to one
-  value.
+- An aggregation over a single group, as in `SELECT SUM(x) FROM t`, converges to
+  one value.
 - A `LIMIT` on an unordered query still has to collect candidates centrally.
 
 In each case the fix is not more parallelism. It is either removing the
@@ -396,7 +399,7 @@ rows as possible.
 Every console block above is verbatim from one production run, with only the
 table and column identifiers changed. The counters, the task counts, the
 9,178.25 second DAG and the 16-minute result afterwards are measured. That the
-vertex ran as one task, consumed every row and emitted none is measured too —
+vertex ran as one task, consumed every row and emitted none is measured too. But
 *why* it is single-task comes from the design docs, not from instrumenting
 Hive's planner, though the fix does not depend on that reasoning. One caveat if
 you go looking at your own summary: it has had reporting bugs, including

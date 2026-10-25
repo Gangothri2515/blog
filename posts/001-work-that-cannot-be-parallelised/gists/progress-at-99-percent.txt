@@ -1,0 +1,18 @@
+        VERTICES      MODE        STATUS  TOTAL  COMPLETED  RUNNING  PENDING  FAILED  KILLED
+----------------------------------------------------------------------------------------------
+Map 4 .......... container     SUCCEEDED      1          1        0        0       0       0
+Reducer 5 ...... container     SUCCEEDED      2          2        0        0       0       0
+Map 6 .......... container     SUCCEEDED      2          2        0        0       0       0
+Reducer 7 ...... container     SUCCEEDED      2          2        0        0       0       0
+Map 10 ......... container     SUCCEEDED      2          2        0        0       0       0
+Reducer 11 ..... container     SUCCEEDED      2          2        0        0       0       0
+Reducer 12 ..... container     SUCCEEDED      1          1        0        0       0       0
+Map 1 .......... container     SUCCEEDED    457        457        0        0       0       0
+Map 8 .......... container     SUCCEEDED     10         10        0        0       0       0
+Reducer 9 ...... container     SUCCEEDED     18         18        0        0       0       0
+Map 13 ......... container     SUCCEEDED      2          2        0        0       0       0
+Reducer 14 ..... container     SUCCEEDED      2          2        0        0       0       0
+Reducer 2 ...... container     SUCCEEDED   1009       1009        0        0       0       0
+Reducer 3        container       RUNNING      1          0        1        0       0       0
+----------------------------------------------------------------------------------------------
+VERTICES: 13/14  [=========================>>-] 99%   ELAPSED TIME: 9177.78 s

@@ -31,11 +31,13 @@ gitignored and never published — keep one term per line:
 
 ```powershell
 $terms = (Get-Content .\scrub-terms.txt | Where-Object { $_ -and $_ -notmatch '^#' }) -join '|'
-Get-ChildItem .\posts -Recurse -Include *.md,*.mmd,*.svg |
+Get-ChildItem .\posts -Recurse -Include *.md,*.mmd,*.svg,*.txt,*.sql,*.diff |
   Select-String -Pattern "(?i)($terms)"
 ```
 
-An empty result is what you want.
+An empty result is what you want. Keep the `-Include` filter: without it the scan
+reaches the PNGs under `assets/`, and compressed image bytes will coincidentally
+match short terms, burying a real hit in dozens of false ones.
 
 ---
 
@@ -84,6 +86,39 @@ LinkedIn.
 
 ## 2. Medium — the canonical home
 
+### AI disclosure — decide this before you draft
+
+Medium's [AI content policy][mediumai] requires that any story incorporating AI
+assistance be labelled as such **within the first two paragraphs**. Undisclosed
+AI-assisted or AI-generated text is restricted to **Network Only** distribution.
+
+What that restriction does and does not cost is worth being precise about.
+Network Only removes the story from Medium's internal feeds and digest emails.
+It does **not** affect Google indexing, direct links, or readers arriving from
+LinkedIn or X — Medium's [distribution guidelines][mediumdist] say so explicitly.
+So if traffic comes from social and search, the real losses are Boost
+eligibility and any publication that bans AI content.
+
+Disclosure is **not** required for AI used only as an outliner, grammar or
+spelling checker, or fact-checker. The line is **who wrote the sentences**. If
+you produce the words — even as a rough voice-memo transcript — and AI only
+tightens grammar and ordering, no disclosure is needed and strict publications
+stay open to you.
+
+For post 001 the disclosure sits directly after the opening paragraph:
+
+> *Disclosure: I used an AI assistant to help draft and structure this write-up.
+> The investigation, the production logs and every number in it are my own.*
+
+For later posts, prefer writing the prose yourself. Talking into a voice recorder
+for ten minutes produces more words than a post of this length needs, and keeps
+Boost and the publications available.
+
+[mediumai]: https://help.medium.com/hc/en-us/articles/22576852947223-Artificial-Intelligence-AI-content-policy
+[mediumdist]: https://help.medium.com/hc/en-us/articles/360006362473-Medium-s-Distribution-Guidelines-How-curators-review-stories-for-Boost-General-and-Network-Distribution
+
+### Creating the draft
+
 1. Go to <https://medium.com/new>
 2. Paste the body of `index.md` — **not** the YAML front matter.
 3. **Set the three title elements.** Medium infers these from position plus
@@ -128,13 +163,32 @@ link back to the source automatically. That is useful once posts live somewhere
 public, but it is the wrong way round while Medium is the canonical home — the
 import would credit GitHub instead. Paste manually for now.
 
-**Reach.** A story on your own profile reaches almost nobody. Submitting to a
-publication is the whole game. Relevant ones for this material: *Data Engineer
-Things*, *Towards Data Science*, *Dev Genius*, *Towards Dev*. Most require you to
-request writer access first, which can take days — start that request now so it
-is in place for post 2. Check each publication's guidelines on previously
-published work; some want originals only, which is another reason Medium goes
-first.
+**Reach.** Submitting to a publication is what gets a post past your own
+followers. Relevant ones here: *Data Engineer Things*, *Towards Data Science*,
+*Dev Genius*, *Towards Dev*. All require writer access first, which is a separate
+application about you rather than about any one post — so apply early and
+unconditionally.
+
+*Data Engineer Things* is the best fit for this material: it is in Medium's Boost
+Nomination Pilot Program, so its editors can nominate a story for a Boost. Apply
+via the form linked from [Write for Data Engineer Things][detwrite]. Turnaround
+is about a week. Note their rule that AI-generated content is not accepted, which
+is stricter than Medium's own disclosure-based policy.
+
+**Submit the published story, not the draft.** This ordering matters. Per
+[Medium's help pages][mediumsubmit], submitting a *draft* to a publication locks
+it — you cannot publish it yourself until an editor approves, which can take a
+week. Submitting an *already-published* story instead means:
+
+- it goes live on your profile on your schedule,
+- editors review it and can accept it into the publication afterwards,
+- a rejection costs nothing, because the post is already up and stays up.
+
+Some publications filter their inbox to unpublished drafts only, in which case
+the option simply will not appear. No harm in checking.
+
+[detwrite]: https://blog.dataengineerthings.org/write-for-data-engineer-things-32dc9294c5db
+[mediumsubmit]: https://help.medium.com/hc/en-us/articles/213904978-How-to-submit-a-story-to-a-publication
 
 **Copy the published URL.** Everything below needs it.
 
