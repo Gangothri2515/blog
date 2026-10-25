@@ -1,18 +1,19 @@
 ---
 title: "My Hive query sat at 99% for two and a half hours"
 published: false
-description: "Thirteen of fourteen vertices finished in about three minutes. The fourteenth was a single task, and it wrote nothing. Here is how to find work that cannot be parallelised, and why adding containers never fixes it."
+description: "Thirteen of fourteen vertices finished in under four minutes. The fourteenth was a single task, and it wrote nothing. Here is how to find work that cannot be parallelised, and why adding containers never fixes it."
 tags: [hive, dataengineering, performance, optimization]
 canonical_url:
 ---
 
-A nightly `INSERT OVERWRITE` over 510 million fact rows reached 99% in about
-three minutes, then sat there for the next two and a half hours. Nothing about
-the data had changed. The cluster was not busy. Adding containers did nothing.
+A nightly `INSERT OVERWRITE` over 510 million fact rows reached 99% after three
+and a half minutes, then sat at 99% for the next two and a half hours. Nothing
+about the data had changed. The cluster was not busy. Adding containers did
+nothing.
 
-Those three minutes were the real work: the scan, the five dimension joins and
-the `GROUP BY`. The remaining 2 hours and 30 minutes was spent by a single task,
-computing statistics that nothing in the pipeline would ever read.
+Those three and a half minutes were the real work: the scan, the five dimension
+joins and the `GROUP BY`. The remaining 2 hours and 29 minutes was spent by a
+single task, computing statistics that nothing in the pipeline would ever read.
 
 This post is about how to spot that shape of problem, because the usual advice —
 raise parallelism, add containers, tune reducer counts — is actively useless
@@ -143,13 +144,13 @@ the entire run. It was not waiting on disk, not waiting on network, not waiting
 on anything. It was computing.
 
 This is the one direction the CPU ratio can be trusted in. A *high* ratio is
-conclusive, because CPU time cannot accumulate while a thread is blocked. A
-*low* ratio tells you much less than people assume — but that is a different
-post.
+conclusive, because CPU time cannot accumulate while a thread is blocked.
 
-**It produced zero output rows.** It consumed all 510,716,836 rows and emitted
-nothing. Whatever it was doing, it was not transforming data on the way to the
-table. The table was already written. This vertex was a side effect.
+**It produced zero output rows.** Look at the last two columns of the
+`Reducer 3` row in the summary above: `INPUT_RECORDS` reads `510,716,836` and
+`OUTPUT_RECORDS` reads `0`. It consumed every row and emitted nothing. Whatever
+it was doing, it was not transforming data on the way to the table. The table
+was already written. This vertex was a side effect.
 
 And its GC time was 104,670 ms against 9,488,200 ms of CPU — 1.1%. Not memory
 pressure. Nothing was thrashing. It was simply a very large amount of
@@ -316,7 +317,7 @@ flowchart TD
 
     Q2{"What is that<br/>vertex's TOTAL<br/>task count?"}
     Q2 -- "1" --> Q3
-    Q2 -- "Many, but COMPLETED<br/>stalls at TOTAL − 1" --> SKEW["<b>Skew.</b><br/>One key dominates a partition.<br/>Aggregate counters cannot show this —<br/>the stall is the only tell."]
+    Q2 -- "Many tasks, but almost all<br/>finish and one keeps running" --> SKEW["<b>Skew.</b><br/>One key landed a huge share of the rows<br/>in a single task.<br/>Vertex averages hide it — compare the<br/>slowest task to the median task."]
     Q2 -- "Many, all progressing" --> Q5
 
     Q3{"Is CPU_TIME close to<br/>or above DURATION?"}

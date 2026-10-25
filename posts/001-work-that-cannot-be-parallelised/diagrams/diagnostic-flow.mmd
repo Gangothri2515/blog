@@ -7,7 +7,7 @@ flowchart TD
 
     Q2{"What is that<br/>vertex's TOTAL<br/>task count?"}
     Q2 -- "1" --> Q3
-    Q2 -- "Many, but COMPLETED<br/>stalls at TOTAL − 1" --> SKEW["<b>Skew.</b><br/>One key dominates a partition.<br/>Aggregate counters cannot show this —<br/>the stall is the only tell."]
+    Q2 -- "Many tasks, but almost all<br/>finish and one keeps running" --> SKEW["<b>Skew.</b><br/>One key landed a huge share of the rows<br/>in a single task.<br/>Vertex averages hide it — compare the<br/>slowest task to the median task."]
     Q2 -- "Many, all progressing" --> Q5
 
     Q3{"Is CPU_TIME close to<br/>or above DURATION?"}
