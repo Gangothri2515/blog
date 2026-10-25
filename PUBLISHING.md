@@ -148,7 +148,23 @@ Boost and the publications available.
      the Gist URL on its own empty line. Medium embeds it with real syntax
      highlighting and horizontal scrolling. Name each Gist file with the right
      extension (`.sql`, `.diff`, `.txt`) so highlighting picks the right
-     language.
+     language. The filename is visible in the embed, so it doubles as a caption.
+
+   Post 001's three blocks live in one multi-file Gist under the
+   `GangothriGadige` account. Medium embeds a single file from a multi-file Gist
+   only via a `?file=` **query parameter**; the `#file-` anchor that GitHub's own
+   UI links to does not work. The URLs to paste:
+
+   ```
+   https://gist.github.com/GangothriGadige/efd392095bfdf01b75e4532322db6932?file=the-query.sql
+   https://gist.github.com/GangothriGadige/efd392095bfdf01b75e4532322db6932?file=task-execution-summary.txt
+   https://gist.github.com/GangothriGadige/efd392095bfdf01b75e4532322db6932?file=progress-at-99-percent.txt
+   ```
+
+   Build the full URL somewhere else and paste it complete, as plain text, on an
+   empty line. Medium resolves an embed once, on paste, and will not re-resolve
+   if you add `?file=` afterwards — you get all three files stacked in one embed
+   and cannot edit your way out. Delete the block and redo it instead.
 6. Upload the remaining PNGs where the ` ```mermaid ` blocks sit in the markdown,
    and delete those blocks — they are for GitHub and dev.to, not here. Give each
    image alt text and a caption too.

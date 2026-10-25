@@ -34,7 +34,7 @@ No Node or npm required — it drives an installed Chrome or Edge.
 
 | # | Title | Status | Medium | dev.to |
 |---|---|---|---|---|
-| 001 | [My Hive query sat at 99% for two and a half hours](./posts/001-work-that-cannot-be-parallelised/index.md) | Draft | — | — |
+| 001 | [My Hive query sat at 99% for two and a half hours](./posts/001-work-that-cannot-be-parallelised/index.md) | Published | [link](https://gangothri-gadige.medium.com/my-hive-query-sat-at-99-for-two-and-a-half-hours-41bae30c1445) | — |
 
 ## Backlog
 
@@ -45,7 +45,7 @@ behind it, and should be framed as such.
 
 **Measured**
 
-1. The work that can't be parallelised — *drafted*
+1. The work that can't be parallelised — *published*
 2. Managed vs external tables in Hive 3
 3. Why `INSERT OVERWRITE` with `UNION ALL` fails on a transactional table
 4. Heap, containers, and the three ways Hive runs out of memory
