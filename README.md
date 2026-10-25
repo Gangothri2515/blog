@@ -13,9 +13,22 @@ pre-publish sanitisation checklist.
 posts/
   NNN-slug/
     index.md            the post, with dev.to-compatible YAML front matter
-    diagrams/           diagram sources — .mmd (Mermaid) and hand-authored .svg
+    diagrams/           diagram sources — .mmd (Mermaid) and hand-authored .svg,
+                        plus the .svg each .mmd renders to
     assets/             exported PNGs for Medium and LinkedIn
+tools/
+  render-diagrams.ps1   .mmd and .svg -> wide PNGs, via headless Chrome
+  mermaid-host.html     the page that script loads Mermaid into
 ```
+
+Medium accepts only JPG/PNG/GIF and wants images at least 1192px wide, so every
+diagram needs a PNG before publishing. One command per post:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File tools\render-diagrams.ps1 -Post 001-work-that-cannot-be-parallelised
+```
+
+No Node or npm required — it drives an installed Chrome or Edge.
 
 ## Posts
 

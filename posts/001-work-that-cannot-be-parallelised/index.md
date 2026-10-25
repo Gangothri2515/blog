@@ -224,12 +224,12 @@ question that matters is never "how do I parallelise this harder" — it is
 **"which step here cannot be parallelised at all, and can I delete it?"**
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph BEFORE["BEFORE — 9,178 s · 14 vertices · 1,511 tasks"]
         direction TB
         A["Map 1<br/>457 tasks · 46 s<br/>scan 510,716,930 rows"]
         B["Reducer 2<br/>1,009 tasks · 160 s<br/>joins + GROUP BY"]
-        C["Reducer 3<br/><b>1 task · 8,993 s</b><br/>column statistics<br/>in: 510,716,836 · out: 0"]
+        C["Reducer 3<br/>1 task · 8,993 s<br/>column statistics<br/>in: 510,716,836 · out: 0"]
         D[("staging.stg_fact_week<br/>written")]
         E[("metastore<br/>TAB_COL_STATS")]
         A --> B --> C
@@ -239,7 +239,7 @@ flowchart TB
 
     subgraph AFTER["AFTER — 960 s"]
         direction TB
-        A2["Map 1<br/>457 tasks<br/>scan 510,716,836 rows"]
+        A2["Map 1<br/>457 tasks<br/>scan 510,716,930 rows"]
         B2["Reducer 2<br/>1,009 tasks<br/>joins + GROUP BY"]
         D2[("staging.stg_fact_week<br/>written")]
         A2 --> B2 --> D2
@@ -317,16 +317,16 @@ flowchart TD
 
     Q2{"What is that<br/>vertex's TOTAL<br/>task count?"}
     Q2 -- "1" --> Q3
-    Q2 -- "Many tasks, but almost all<br/>finish and one keeps running" --> SKEW["<b>Skew.</b><br/>One key landed a huge share of the rows<br/>in a single task.<br/>Vertex averages hide it — compare the<br/>slowest task to the median task."]
     Q2 -- "Many, all progressing" --> Q5
+    Q2 -- "Many, but almost all finish<br/>and one keeps running" --> SKEW["Skew.<br/>One key landed a huge share<br/>of the rows in one task.<br/>Vertex averages hide this — compare<br/>the slowest task to the median."]
 
     Q3{"Is CPU_TIME close to<br/>or above DURATION?"}
     Q3 -- Yes --> Q4
     Q3 -- "No, far below" --> NOTCPU["Not CPU-bound at task level.<br/>That is all you know.<br/>Get SPILLED_RECORDS, FILE_BYTES_*<br/>and shuffle counters from<br/>yarn logs -applicationId"]
 
     Q4{"OUTPUT_RECORDS = 0<br/>while INPUT_RECORDS<br/>is the full row count?"}
-    Q4 -- Yes --> SIDEEFFECT["<b>Single-threaded side effect.</b><br/>Not producing data — doing bookkeeping.<br/>Check hive.stats.column.autogather"]
-    Q4 -- No --> SERIAL["<b>Structurally serial step.</b><br/>ORDER BY · COUNT(DISTINCT) with no GROUP BY ·<br/>window with no PARTITION BY ·<br/>aggregate over one group"]
+    Q4 -- Yes --> SIDEEFFECT["Single-threaded side effect.<br/>Not producing data — doing bookkeeping.<br/>Check hive.stats.column.autogather"]
+    Q4 -- No --> SERIAL["Structurally serial step.<br/>ORDER BY · COUNT(DISTINCT) with no GROUP BY ·<br/>window with no PARTITION BY ·<br/>aggregate over one group"]
 
     Q5{"GC_TIME over roughly<br/>10–15% of CPU_TIME?"}
     Q5 -- Yes --> MEM["Memory pressure.<br/>Heap nearly full, collecting constantly.<br/>Raise -Xmx or shrink retained state."]

@@ -7,16 +7,16 @@ flowchart TD
 
     Q2{"What is that<br/>vertex's TOTAL<br/>task count?"}
     Q2 -- "1" --> Q3
-    Q2 -- "Many tasks, but almost all<br/>finish and one keeps running" --> SKEW["<b>Skew.</b><br/>One key landed a huge share of the rows<br/>in a single task.<br/>Vertex averages hide it — compare the<br/>slowest task to the median task."]
     Q2 -- "Many, all progressing" --> Q5
+    Q2 -- "Many, but almost all finish<br/>and one keeps running" --> SKEW["Skew.<br/>One key landed a huge share<br/>of the rows in one task.<br/>Vertex averages hide this — compare<br/>the slowest task to the median."]
 
     Q3{"Is CPU_TIME close to<br/>or above DURATION?"}
     Q3 -- Yes --> Q4
     Q3 -- "No, far below" --> NOTCPU["Not CPU-bound at task level.<br/>That is all you know.<br/>Get SPILLED_RECORDS, FILE_BYTES_*<br/>and shuffle counters from<br/>yarn logs -applicationId"]
 
     Q4{"OUTPUT_RECORDS = 0<br/>while INPUT_RECORDS<br/>is the full row count?"}
-    Q4 -- Yes --> SIDEEFFECT["<b>Single-threaded side effect.</b><br/>Not producing data — doing bookkeeping.<br/>Check hive.stats.column.autogather"]
-    Q4 -- No --> SERIAL["<b>Structurally serial step.</b><br/>ORDER BY · COUNT(DISTINCT) with no GROUP BY ·<br/>window with no PARTITION BY ·<br/>aggregate over one group"]
+    Q4 -- Yes --> SIDEEFFECT["Single-threaded side effect.<br/>Not producing data — doing bookkeeping.<br/>Check hive.stats.column.autogather"]
+    Q4 -- No --> SERIAL["Structurally serial step.<br/>ORDER BY · COUNT(DISTINCT) with no GROUP BY ·<br/>window with no PARTITION BY ·<br/>aggregate over one group"]
 
     Q5{"GC_TIME over roughly<br/>10–15% of CPU_TIME?"}
     Q5 -- Yes --> MEM["Memory pressure.<br/>Heap nearly full, collecting constantly.<br/>Raise -Xmx or shrink retained state."]

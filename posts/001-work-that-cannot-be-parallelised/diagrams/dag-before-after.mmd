@@ -1,9 +1,9 @@
-flowchart TB
+flowchart LR
     subgraph BEFORE["BEFORE — 9,178 s · 14 vertices · 1,511 tasks"]
         direction TB
         A["Map 1<br/>457 tasks · 46 s<br/>scan 510,716,930 rows"]
         B["Reducer 2<br/>1,009 tasks · 160 s<br/>joins + GROUP BY"]
-        C["Reducer 3<br/><b>1 task · 8,993 s</b><br/>column statistics<br/>in: 510,716,836 · out: 0"]
+        C["Reducer 3<br/>1 task · 8,993 s<br/>column statistics<br/>in: 510,716,836 · out: 0"]
         D[("staging.stg_fact_week<br/>written")]
         E[("metastore<br/>TAB_COL_STATS")]
         A --> B --> C
@@ -13,7 +13,7 @@ flowchart TB
 
     subgraph AFTER["AFTER — 960 s"]
         direction TB
-        A2["Map 1<br/>457 tasks<br/>scan 510,716,836 rows"]
+        A2["Map 1<br/>457 tasks<br/>scan 510,716,930 rows"]
         B2["Reducer 2<br/>1,009 tasks<br/>joins + GROUP BY"]
         D2[("staging.stg_fact_week<br/>written")]
         A2 --> B2 --> D2

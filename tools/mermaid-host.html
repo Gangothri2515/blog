@@ -1,0 +1,42 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  html, body { margin: 0; padding: 0; background: #ffffff; }
+  #c { display: inline-block; background: #ffffff; }
+  #c svg { display: block; }
+</style>
+</head>
+<body>
+<div id="c"></div>
+<script type="module">
+// htmlLabels must stay false: HTML labels render into <foreignObject>, which is
+// ignored when an SVG is loaded through an <img> tag, so both the PNG export and
+// GitHub's raw-SVG view would come out blank.
+import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+try {
+  mermaid.initialize({
+    startOnLoad: false,
+    theme: 'base',
+    htmlLabels: false,
+    flowchart: { htmlLabels: false, nodeSpacing: 45, rankSpacing: 55, padding: 12 },
+    themeVariables: {
+      fontFamily: 'Segoe UI, Helvetica, Arial, sans-serif',
+      fontSize: '15px',
+      lineColor: '#6b7280',
+      primaryColor: '#ffffff',
+      primaryTextColor: '#111827',
+      primaryBorderColor: '#374151'
+    }
+  });
+  const target = decodeURIComponent(location.hash.slice(1));
+  const src = await (await fetch(target)).text();
+  const { svg } = await mermaid.render('graph0', src);
+  document.getElementById('c').innerHTML = svg;
+} catch (e) {
+  document.getElementById('c').textContent = 'RENDER_ERROR: ' + e.message;
+}
+</script>
+</body>
+</html>

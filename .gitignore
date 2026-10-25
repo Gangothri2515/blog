@@ -16,5 +16,8 @@ desktop.ini
 *.bak
 scratch/
 
+# Intermediate HTML written by tools/render-diagrams.ps1
+.render/
+
 # Names internal systems — must never be published
 scrub-terms.txt
